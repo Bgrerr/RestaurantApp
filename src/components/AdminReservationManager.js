@@ -28,23 +28,30 @@ const AdminReservationManager = () => {
   }, []);
   
   const handleApprove = (reservationId) => {
-    const updatedReservations = reservations.map(res => {
-      if (res.id === reservationId) {
-        return { ...res, status: 'approved' };
-      }
-      return res;
-    });
-    
-    appState.setState({ reservations: updatedReservations });
-    
-    // Si hay un usuario administrador autenticado, usar su método approveReservation
-    if (appState.userData && appState.userData.role === 'admin') {
-      appState.userData.approveReservation(reservationId);
-    }
-    
-    setMessage('Reserva aprobada correctamente');
-    setTimeout(() => setMessage(''), 3000);
-  };
+  const updated = reservations.find(r => r.id === reservationId);
+  if (!updated) return;
+
+  const updatedReservation = { ...updated, status: 'approved' };
+
+  fetch(`/api/reservations/${reservationId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedReservation)
+  })
+  .then(res => res.json())
+  .then(data => {
+    const newList = reservations.map(res =>
+      res.id === reservationId ? data : res
+    );
+    setReservations(newList);
+    appState.setState({ reservations: newList });
+    setMessage('Reserva aprobada');
+  })
+  .catch(err => {
+    console.error('Error al aprobar reserva:', err);
+    setMessage('Error al actualizar la reserva');
+  });
+};
   
   const handleReject = (reservationId) => {
     const updatedReservations = reservations.map(res => {
