@@ -23,5 +23,18 @@ sequelize.sync().then(async () => {
   }
 });
 
+app.put('/api/reservations/:id', (req, res) => {
+  const reservationId = parseInt(req.params.id);
+  const updatedReservation = req.body;
+
+  const index = reservations.findIndex(r => r.id === reservationId);
+  if (index === -1) {
+    return res.status(404).json({ message: 'Reserva no encontrada' });
+  }
+
+  reservations[index] = { ...reservations[index], ...updatedReservation };
+  res.json(reservations[index]);
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor escuchando en el puerto ${PORT}`));
