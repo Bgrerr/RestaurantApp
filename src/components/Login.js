@@ -8,35 +8,30 @@ const Login = () => {
   const [role, setRole] = useState('customer');
   const [error, setError] = useState('');
   
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // En una aplicación real, aquí iría la verificación con el backend
-    if (email && password) {
-      // Datos de ejemplo para demostración
-      const mockUserData = {
-        id: 'user123',
-        name: email.split('@')[0],
-        email: email,
-        preferences: [],
-        restaurantId: role === 'admin' ? 'rest123' : null
-      };
-      
-      try {
-        // Usar el Factory para crear el tipo de usuario correspondiente
-        const user = UserFactory.createUser(role, mockUserData);
-        
-        // Usar el Singleton para gestionar el estado de la autenticación
-        appState.login(user, role);
-        
-        setError('');
-      } catch (err) {
-        setError(err.message);
-      }
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: email, password })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      const user = UserFactory.createUser(role, data.user);
+      appState.setState({ userData: user });
     } else {
-      setError('Por favor, complete todos los campos');
+      setError(data.message || 'Error de autenticación');
     }
-  };
+  } catch (err) {
+    setError('No se pudo conectar al servidor');
+    console.error(err);
+  }
+};
+
   
   return (
     <div className="login-container">
