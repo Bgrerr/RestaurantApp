@@ -4,12 +4,29 @@ class AppState {
       return AppState.instance;
     }
 
-    // 🆕 Restaurar sesión desde localStorage
     const savedSession = JSON.parse(localStorage.getItem('appState'));
     if (savedSession?.isLoggedIn) {
       this.isLoggedIn = true;
       this.userRole = savedSession.userRole;
-      this.userData = savedSession.userData;
+
+      // Restaurar userData con funciones según el rol
+      if (savedSession.userRole === "customer") {
+        this.userData = {
+          name: savedSession.userData.name,
+          makeReservation: (...args) => {
+            console.log("Reserva realizada (simulación)", ...args);
+          }
+        };
+      } else if (savedSession.userRole === "admin") {
+        this.userData = {
+          name: savedSession.userData.name,
+          viewReservations: () => {
+            console.log("Vista de reservas del admin (simulación)");
+          }
+        };
+      } else {
+        this.userData = null;
+      }
     } else {
       this.isLoggedIn = false;
       this.userRole = null;
@@ -24,7 +41,7 @@ class AppState {
 
   setState(newState) {
     Object.assign(this, newState);
-    this.saveToLocalStorage(); // 🆕 Guardar al actualizar estado
+    this.saveToLocalStorage();
     this.notifyListeners();
   }
 
@@ -32,7 +49,7 @@ class AppState {
     this.isLoggedIn = true;
     this.userRole = role;
     this.userData = userData;
-    this.saveToLocalStorage(); // 🆕 Guardar sesión al hacer login
+    this.saveToLocalStorage();
     this.notifyListeners();
   }
 
@@ -40,14 +57,17 @@ class AppState {
     this.isLoggedIn = false;
     this.userRole = null;
     this.userData = null;
-    localStorage.removeItem('appState'); // 🆕 Borrar sesión al hacer logout
+    localStorage.removeItem('appState');
     this.notifyListeners();
   }
 
-  // 🆕 Guardar sesión en localStorage
   saveToLocalStorage() {
     const { isLoggedIn, userRole, userData } = this;
-    localStorage.setItem('appState', JSON.stringify({ isLoggedIn, userRole, userData }));
+    localStorage.setItem('appState', JSON.stringify({
+      isLoggedIn,
+      userRole,
+      userData: { name: userData?.name }
+    }));
   }
 
   subscribe(listener) {
@@ -66,3 +86,4 @@ class AppState {
 
 const appState = new AppState();
 export default appState;
+
