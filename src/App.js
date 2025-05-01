@@ -11,6 +11,9 @@ function App() {
   
   // Suscribirse a los cambios en el estado de autenticación
   useEffect(() => {
+    setIsLoggedIn(appState.isLoggedIn);
+    setUserRole(appState.userRole);
+    
     const unsubscribe = appState.subscribe((state) => {
       setIsLoggedIn(state.isLoggedIn);
       setUserRole(state.userRole);
