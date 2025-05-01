@@ -11,8 +11,17 @@ const AdminReservationManager = () => {
       setReservations(state.reservations);
     });
     
-    // Cargar reservaciones iniciales
-    setReservations(appState.reservations);
+    // Cargar reservas desde el backend
+    fetch('/api/reservations')
+      .then(res => res.json())
+      .then(data => {
+        setReservations(data);
+        appState.setState({ reservations: data });
+      })
+      .catch(err => {
+        console.error('Error al obtener reservas:', err);
+      });
+
     
     // Limpieza al desmontar
     return () => unsubscribe();
