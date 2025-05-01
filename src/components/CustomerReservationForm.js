@@ -8,43 +8,40 @@ const CustomerReservationForm = () => {
   const [notes, setNotes] = useState('');
   const [success, setSuccess] = useState('');
   
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Crear objeto de reserva
-    const reservation = {
-      id: Date.now().toString(),
-      date,
-      time,
-      guests,
-      notes,
-      status: 'pending',
-      userId: appState.userData.id
-    };
-    
-    // En una aplicación real, aquí se enviaría al backend
-    // Para este ejemplo, simplemente actualizamos el estado
-    const currentReservations = [...appState.reservations];
-    currentReservations.push(reservation);
-    appState.setState({ reservations: currentReservations });
-    
-    // También actualizamos las reservas del usuario
-    if (appState.userData.role === 'customer') {
-      appState.userData.makeReservation(reservation);
-    }
-    
-    // Mostrar mensaje de éxito
-    setSuccess('Reserva realizada con éxito');
-    
-    // Limpiar el formulario
-    setDate('');
-    setTime('');
-    setGuests(1);
-    setNotes('');
-    
-    // Limpiar mensaje después de 3 segundos
-    setTimeout(() => setSuccess(''), 3000);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const reservation = {
+    date,
+    time,
+    guests,
+    notes,
+    userId: appState.userData.id
   };
+
+  try {
+    const response = await fetch('/api/reservations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reservation)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setSuccess('Reserva realizada con éxito');
+      // Actualizar estado global
+      const currentReservations = [...appState.reservations, data];
+      appState.setState({ reservations: currentReservations });
+    } else {
+      setSuccess('Error al crear la reserva');
+    }
+  } catch (err) {
+    console.error(err);
+    setSuccess('No se pudo conectar con el servidor');
+  }
+};
+
   
   return (
     <div className="reservation-form">
