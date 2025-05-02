@@ -16,10 +16,10 @@ app.use('/api/login', authRoutes);
 sequelize.sync().then(async () => {
   console.log('Base de datos sincronizada');
 
-  const exists = await User.findOne({ where: { username: "admin" } });
+  const exists = await User.findOne({ where: { username: "admin@com" } });
   if (!exists) {
     await User.create({ username: "admin@com", password: "1234" });
-    console.log("Usuario admin creado");
+    console.log("Usuario admin@com creado");
   }
 });
 
