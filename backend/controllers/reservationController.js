@@ -10,12 +10,21 @@ exports.getAllReservations = async (req, res) => {
 };
 
 exports.createReservation = async (req, res) => {
-  const { name, email, date, time, people } = req.body;
+  const { date, time, guests, notes, userId } = req.body;
 
   try {
-    const newReservation = await Reservation.create({ name, email, date, time, people });
+    const newReservation = await Reservation.create({
+      date,
+      time,
+      guests,
+      notes,
+      userId
+    });
+
     res.status(201).json(newReservation);
   } catch (error) {
+    console.error(error);
     res.status(400).json({ error: "Error al crear reserva" });
   }
 };
+
