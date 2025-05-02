@@ -4,21 +4,17 @@ const path = require('path');
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: path.join(__dirname, 'reservations.sqlite'),
-  logging: false // opcional: desactiva logs de SQL en consola
+  logging: false
 });
 
-// ✅ Importar modelos
-const User = require('./User');
-const Reservation = require('./Reservation');
+// Importar modelos pasándoles la instancia
+const User = require('./User')(sequelize);
+const Reservation = require('./Reservation')(sequelize);
 
-// ✅ Definir asociaciones (en caso no estén en los modelos directamente)
+// Definir relaciones
 User.hasMany(Reservation, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Reservation.belongsTo(User, { foreignKey: 'userId' });
 
-// ✅ Exportar todo junto
-module.exports = {
-  sequelize,
-  User,
-  Reservation
-};
+module.exports = { sequelize, User, Reservation };
+
 
