@@ -18,7 +18,7 @@ sequelize.sync().then(async () => {
 
   const exists = await User.findOne({ where: { username: "admin" } });
   if (!exists) {
-    await User.create({ username: "admin", password: "1234" });
+    await User.create({ username: "admin@com", password: "1234" });
     console.log("Usuario admin creado");
   }
 });
