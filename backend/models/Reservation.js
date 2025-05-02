@@ -2,14 +2,6 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('./index');
 
 const Reservation = sequelize.define('Reservation', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   date: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -18,10 +10,19 @@ const Reservation = sequelize.define('Reservation', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  people: {
+  guests: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  }
 });
 
 module.exports = Reservation;
+
