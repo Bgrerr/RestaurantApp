@@ -37,19 +37,23 @@ const CustomerReservationForm = () => {
   
       if (response.ok) {
         setSuccessMessage('Reserva realizada con éxito');
-        
-        // Actualizar estado global con la nueva reserva
-        appState.setState((prevState) => ({
-          reservations: [...prevState.reservations, data]  // Añadimos la nueva reserva al estado
-        }));
+  
+        // Solo actualizar el estado global si el backend responde correctamente
+        if (data.status === 'pending') {
+          appState.setState((prevState) => ({
+            reservations: [...prevState.reservations, data]
+          }));
+        }
       } else {
-        setErrorMessage('Error al crear la reserva');
+        setErrorMessage(`Error al crear la reserva: ${data.error || 'Error desconocido'}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error al enviar la reserva:', err);
       setErrorMessage('No se pudo conectar con el servidor');
     }
   };
+  
+  
   
 
   return (

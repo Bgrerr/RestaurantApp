@@ -33,55 +33,66 @@ const AdminReservationManager = () => {
   const handleApprove = (reservationId) => {
     const updated = reservations.find(r => r.id === reservationId);
     if (!updated) return;
-  
-    const updatedReservation = { ...updated, status: 'approved' };
-  
+
+    // Asegurarse de que el estado de la reserva es 'pending'
+    if (updated.status !== 'pending') {
+      setMessage('Solo se pueden aprobar reservas pendientes.');
+      return;
+    }
+
     fetch(`/api/reservations/updateStatus`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reservationId, status: 'approved' })
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Reserva actualizada desde el backend:", data);
-        appState.updateReservation(data);  // Actualiza la reserva en el estado global
-      })
-      .catch(err => {
-        console.error('Error al actualizar la reserva:', err);
-      });
-    
-  };
-  
-  const handleReject = (reservationId) => {
-    const updatedReservations = reservations.map(res => {
-      if (res.id === reservationId) {
-        return { ...res, status: 'rejected' };
-      }
-      return res;
-    });
-  
-    fetch(`/api/reservations/updateStatus`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reservationId, status: 'rejected' })
+      body: JSON.stringify({ id: reservationId, status: 'approved' })  // Enviar id y status
     })
       .then(res => {
-        if (!res.ok) {
-          throw new Error('Error al rechazar la reserva');
-        }
+        if (!res.ok) throw new Error("Error al aprobar la reserva");
         return res.json();
       })
       .then(data => {
-        appState.setState({ reservations: updatedReservations });
-        setMessage('Reserva rechazada correctamente');
-        setTimeout(() => setMessage(''), 3000);
+        appState.updateReservation(data);  // Actualiza la reserva en el estado global
+        setReservations(prevReservations =>
+          prevReservations.map(res => res.id === reservationId ? data : res)
+        );
+        setMessage('Reserva aprobada correctamente');
       })
       .catch(err => {
-        console.error('Error al rechazar reserva:', err);
-        setMessage(`Error al rechazar la reserva: ${err.message}`);
+        console.error("Error al aprobar la reserva:", err);
+        setMessage(`Error al actualizar la reserva: ${err.message}`);
       });
   };
-  
+
+  const handleReject = (reservationId) => {
+    const updated = reservations.find(r => r.id === reservationId);
+    if (!updated) return;
+
+    // Asegurarse de que el estado de la reserva es 'pending'
+    if (updated.status !== 'pending') {
+      setMessage('Solo se pueden rechazar reservas pendientes.');
+      return;
+    }
+
+    fetch(`/api/reservations/updateStatus`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: reservationId, status: 'rejected' })  // Enviar id y status
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Error al rechazar la reserva");
+        return res.json();
+      })
+      .then(data => {
+        appState.updateReservation(data);  // Actualiza la reserva en el estado global
+        setReservations(prevReservations =>
+          prevReservations.map(res => res.id === reservationId ? data : res)
+        );
+        setMessage('Reserva rechazada correctamente');
+      })
+      .catch(err => {
+        console.error("Error al rechazar la reserva:", err);
+        setMessage(`Error al actualizar la reserva: ${err.message}`);
+      });
+  };
 
   return (
     <div className="admin-reservation-manager">

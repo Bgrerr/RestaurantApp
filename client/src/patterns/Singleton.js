@@ -3,25 +3,23 @@ class AppState {
     if (AppState.instance) {
       return AppState.instance;
     }
-  
+
     const savedSession = JSON.parse(localStorage.getItem('appState'));
-if (savedSession?.isLoggedIn && savedSession?.userData?.id) {
-  this.isLoggedIn = true;
-  this.userRole = savedSession.userRole;
-  this.userData = savedSession.userData;
-} else {
-  this.isLoggedIn = false;
-  this.userRole = null;
-  this.userData = null;
-  console.error("No se pudo restaurar la sesión, los datos están incompletos.");
-}
-  
+    if (savedSession?.isLoggedIn && savedSession?.userData?.id) {
+      this.isLoggedIn = true;
+      this.userRole = savedSession.userRole;
+      this.userData = savedSession.userData;
+    } else {
+      this.isLoggedIn = false;
+      this.userRole = null;
+      this.userData = null;
+      console.error("No se pudo restaurar la sesión, los datos están incompletos.");
+    }
+
     this.reservations = [];
     this.listeners = [];
     AppState.instance = this;
   }
-  
-  
 
   setState(newState) {
     Object.assign(this, newState);
@@ -41,8 +39,6 @@ if (savedSession?.isLoggedIn && savedSession?.userData?.id) {
       console.error("El ID de usuario no está disponible durante el login.");
     }
   }
-  
-  
 
   logout() {
     this.isLoggedIn = false;
@@ -73,7 +69,7 @@ if (savedSession?.isLoggedIn && savedSession?.userData?.id) {
       console.error("ID de reserva no válido");
       return;
     }
-  
+
     const index = this.reservations.findIndex(res => res.id === updatedReservation.id);
     if (index !== -1) {
       console.log("Actualizando reserva", updatedReservation);
@@ -83,15 +79,6 @@ if (savedSession?.isLoggedIn && savedSession?.userData?.id) {
       console.warn("Reserva no encontrada para actualizar");
     }
   }
-  
-
-  notifyListeners() {
-    console.log("Notificando a los listeners con el estado actualizado:", this.reservations);
-    for (const listener of this.listeners) {
-      listener(this);
-    }
-  }
-  
 
   addReservation(reservation) {
     try {
@@ -102,22 +89,6 @@ if (savedSession?.isLoggedIn && savedSession?.userData?.id) {
     }
   }
 
-  updateReservation(updatedReservation) {
-    if (!updatedReservation.id) {
-      console.error("ID de reserva no válido");
-      return;
-    }
-  
-    const index = this.reservations.findIndex(res => res.id === updatedReservation.id);
-    if (index !== -1) {
-      this.reservations[index] = updatedReservation;
-      this.setState({ reservations: this.reservations });
-    } else {
-      console.warn("Reserva no encontrada para actualizar");
-    }
-  }
-  
-
   removeReservation(reservationId) {
     try {
       const updatedReservations = this.reservations.filter(res => res.id !== reservationId);
@@ -127,6 +98,13 @@ if (savedSession?.isLoggedIn && savedSession?.userData?.id) {
       this.setState({ reservations: updatedReservations });
     } catch (error) {
       console.error("Error al eliminar reserva:", error);
+    }
+  }
+
+  notifyListeners() {
+    console.log("Notificando a los listeners con el estado actualizado:", this.reservations);
+    for (const listener of this.listeners) {
+      listener(this);
     }
   }
 }
