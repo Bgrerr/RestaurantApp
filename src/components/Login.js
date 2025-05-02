@@ -22,10 +22,22 @@ const Login = () => {
 
       if (response.ok) {
         const user = UserFactory.createUser(role, data.user);
-        appState.setState({ userData: user });
 
-        // ✅ Redirección o recarga luego del login exitoso
-        window.location.reload();
+        // ✅ Corrección: actualizar todos los valores necesarios del estado global
+        appState.setState({
+          isLoggedIn: true,
+          userRole: role,
+          userData: user
+        });
+
+        // ✅ Guardar también en localStorage para persistencia
+        localStorage.setItem('appState', JSON.stringify({
+          isLoggedIn: true,
+          userRole: role,
+          userData: { name: user.name }
+        }));
+
+        window.location.reload(); // ✅ Redirigir tras login
       } else {
         setError(data.message || 'Error de autenticación');
       }
