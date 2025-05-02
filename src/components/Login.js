@@ -7,32 +7,34 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('customer');
   const [error, setError] = useState('');
-  
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: email, password })
-    });
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      const user = UserFactory.createUser(role, data.user);
-      appState.setState({ userData: user });
-    } else {
-      setError(data.message || 'Error de autenticación');
+      if (response.ok) {
+        const user = UserFactory.createUser(role, data.user);
+        appState.setState({ userData: user });
+
+        // ✅ Redirección o recarga luego del login exitoso
+        window.location.reload();
+      } else {
+        setError(data.message || 'Error de autenticación');
+      }
+    } catch (err) {
+      setError('No se pudo conectar al servidor');
+      console.error(err);
     }
-  } catch (err) {
-    setError('No se pudo conectar al servidor');
-    console.error(err);
-  }
-};
+  };
 
-  
   return (
     <div className="login-container">
       <h2>Iniciar Sesión</h2>
@@ -49,7 +51,7 @@ const Login = () => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="password">Contraseña:</label>
           <input
@@ -60,7 +62,7 @@ const Login = () => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="role">Tipo de usuario:</label>
           <select
@@ -72,7 +74,7 @@ const Login = () => {
             <option value="admin">Administrador</option>
           </select>
         </div>
-        
+
         <button type="submit" className="btn-login">Ingresar</button>
       </form>
     </div>
