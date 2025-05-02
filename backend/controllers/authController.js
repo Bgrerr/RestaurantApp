@@ -16,8 +16,17 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: "Contraseña incorrecta" });
     }
 
-    res.json({ token: "fake-jwt-token", user: { username } });
+    // ✅ Respuesta corregida con información completa del usuario
+    res.json({
+      token: "fake-jwt-token",
+      user: {
+        id: user.id,
+        name: user.username,
+        email: user.username // o user.email si usas un campo separado
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: "Error en login" });
   }
 };
+
