@@ -2,17 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const reservationRoutes = require('./routes/reservationRoutes');
 const authRoutes = require('./routes/authRoutes');
-const sequelize = require('./models');
-const User = require('./models/User');
-
+const { sequelize, User } = require('./models');  // Aquí obtenemos la instancia de sequelize y el modelo User
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/login', authRoutes);
 
-// Sincronizar DB y crear usuario admin si no existe
+// Sincronizar la base de datos y crear el usuario admin si no existe
 sequelize.sync().then(async () => {
   console.log('Base de datos sincronizada');
 
@@ -38,3 +37,4 @@ app.put('/api/reservations/:id', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor escuchando en el puerto ${PORT}`));
+
