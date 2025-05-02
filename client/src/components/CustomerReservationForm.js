@@ -6,48 +6,59 @@ const CustomerReservationForm = () => {
   const [time, setTime] = useState('');
   const [guests, setGuests] = useState(1);
   const [notes, setNotes] = useState('');
-  const [success, setSuccess] = useState('');
-  
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  const reservation = {
-    date,
-    time,
-    guests,
-    notes,
-    userId: appState.userData.id
-  };
-
-  try {
-    const response = await fetch('/api/reservations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reservation)
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setSuccess('Reserva realizada con éxito');
-      // Actualizar estado global
-      const currentReservations = [...appState.reservations, data];
-      appState.setState({ reservations: currentReservations });
-    } else {
-      setSuccess('Error al crear la reserva');
-    }
-  } catch (err) {
-    console.error(err);
-    setSuccess('No se pudo conectar con el servidor');
-  }
-};
-
+    e.preventDefault();
   
+    // Verificar si el usuario está autenticado
+    if (!appState.isLoggedIn) {
+      setErrorMessage('Usuario no autenticado. Inicie sesión para continuar.');
+      return;
+    }
+  
+    const reservation = {
+      date,
+      time,
+      guests,
+      notes,
+      userId: appState.userData.id  // Usamos 'id' como userId
+    };
+  
+    try {
+      const response = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reservation)
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setSuccessMessage('Reserva realizada con éxito');
+        
+        // Actualizar estado global con la nueva reserva
+        appState.setState((prevState) => ({
+          reservations: [...prevState.reservations, data]  // Añadimos la nueva reserva al estado
+        }));
+      } else {
+        setErrorMessage('Error al crear la reserva');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage('No se pudo conectar con el servidor');
+    }
+  };
+  
+
   return (
     <div className="reservation-form">
       <h2>Realizar una Reserva</h2>
-      {success && <div className="success-message">{success}</div>}
-      
+
+      {successMessage && <div className="success-message">{successMessage}</div>}
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="date">Fecha:</label>
@@ -59,7 +70,7 @@ const CustomerReservationForm = () => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="time">Hora:</label>
           <input
@@ -70,7 +81,7 @@ const CustomerReservationForm = () => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="guests">Número de personas:</label>
           <input
@@ -79,11 +90,11 @@ const CustomerReservationForm = () => {
             min="1"
             max="20"
             value={guests}
-            onChange={(e) => setGuests(parseInt(e.target.value))}
+            onChange={(e) => setGuests(parseInt(e.target.value, 10))}
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="notes">Notas adicionales:</label>
           <textarea
@@ -93,7 +104,7 @@ const CustomerReservationForm = () => {
             rows="3"
           ></textarea>
         </div>
-        
+
         <button type="submit" className="btn-reserve">Reservar</button>
       </form>
     </div>

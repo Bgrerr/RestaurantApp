@@ -12,32 +12,34 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: email, password })
       });
-
+      
       const data = await response.json();
-
+      
       if (response.ok) {
-        const user = UserFactory.createUser(role, data.user);
-
-        // ✅ Corrección: actualizar todos los valores necesarios del estado global
+        appState.login({
+          id: data.user.id,
+          name: data.user.username
+        }, "customer");
+      
         appState.setState({
           isLoggedIn: true,
           userRole: role,
-          userData: user
+          userData: data.user
         });
-
-        // ✅ Guardar también en localStorage para persistencia
+      
         localStorage.setItem('appState', JSON.stringify({
           isLoggedIn: true,
           userRole: role,
-          userData: { name: user.name }
+          userData: data.user
         }));
-
-        window.location.reload(); // ✅ Redirigir tras login
+      
+        window.location.reload();
+      
       } else {
         setError(data.message || 'Error de autenticación');
       }

@@ -16,4 +16,9 @@ const Reservation = require('./Reservation')(sequelize);
 User.hasMany(Reservation, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Reservation.belongsTo(User, { foreignKey: 'userId' });
 
+sequelize.sync()
+  .then(() => console.log('Tablas sincronizadas correctamente'))
+  .catch((error) => console.error('Error al sincronizar las tablas:', error));
+
+
 module.exports = { sequelize, User, Reservation };

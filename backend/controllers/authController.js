@@ -1,4 +1,5 @@
-const User = require('../models/User');
+// backend/controllers/authController.js
+const { User } = require('../models');  // Asegúrate de importar desde 'models' y no desde 'User' directamente
 const bcrypt = require('bcrypt');
 
 exports.login = async (req, res) => {
@@ -8,7 +9,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ where: { username } });
 
     if (!user) {
-      return res.status(401).json({ error: "Usuario no encontrado" });
+      return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
     const valid = await bcrypt.compare(password, user.password);
@@ -16,17 +17,16 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: "Contraseña incorrecta" });
     }
 
-    // ✅ Respuesta corregida con información completa del usuario
+    // Solo responde con los datos necesarios
     res.json({
       token: "fake-jwt-token",
       user: {
-        id: user.id,
-        name: user.username,
-        email: user.username // o user.email si usas un campo separado
+        id: user.id,              // 👈 IMPORTANTE: este es el que necesitas
+        username: user.username
       }
     });
   } catch (error) {
+    console.error("Error en login:", error);
     res.status(500).json({ error: "Error en login" });
   }
 };
-

@@ -4,54 +4,53 @@ import appState from '../patterns/Singleton';
 const AdminReservationManager = () => {
   const [reservations, setReservations] = useState([]);
   const [message, setMessage] = useState('');
-  
+
   // Suscribirse a los cambios en el estado global
   useEffect(() => {
     const unsubscribe = appState.subscribe((state) => {
       setReservations(state.reservations);
     });
-    
-    // Cargar reservas desde el backend
+
+    // Cargar reservas desde el backend solo una vez
     fetch('/api/reservations')
       .then(res => res.json())
       .then(data => {
-        setReservations(data);
-        appState.setState({ reservations: data });
+        if (Array.isArray(data)) {
+          setReservations(data);  // Cargar todas las reservas
+          appState.setState({ reservations: data }); // Guardar en el estado global
+        } else {
+          console.error("Error: los datos de reservas no son un arreglo");
+        }
       })
       .catch(err => {
         console.error('Error al obtener reservas:', err);
       });
 
-    
     // Limpieza al desmontar
     return () => unsubscribe();
   }, []);
-  
+
   const handleApprove = (reservationId) => {
-  const updated = reservations.find(r => r.id === reservationId);
-  if (!updated) return;
-
-  const updatedReservation = { ...updated, status: 'approved' };
-
-  fetch(`/api/reservations/${reservationId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updatedReservation)
-  })
-  .then(res => res.json())
-  .then(data => {
-    const newList = reservations.map(res =>
-      res.id === reservationId ? data : res
-    );
-    setReservations(newList);
-    appState.setState({ reservations: newList });
-    setMessage('Reserva aprobada');
-  })
-  .catch(err => {
-    console.error('Error al aprobar reserva:', err);
-    setMessage('Error al actualizar la reserva');
-  });
-};
+    const updated = reservations.find(r => r.id === reservationId);
+    if (!updated) return;
+  
+    const updatedReservation = { ...updated, status: 'approved' };
+  
+    fetch(`/api/reservations/updateStatus`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reservationId, status: 'approved' })
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Reserva actualizada desde el backend:", data);
+        appState.updateReservation(data);  // Actualiza la reserva en el estado global
+      })
+      .catch(err => {
+        console.error('Error al actualizar la reserva:', err);
+      });
+    
+  };
   
   const handleReject = (reservationId) => {
     const updatedReservations = reservations.map(res => {
@@ -60,23 +59,35 @@ const AdminReservationManager = () => {
       }
       return res;
     });
-    
-    appState.setState({ reservations: updatedReservations });
-    
-    // Si hay un usuario administrador autenticado, usar su método rejectReservation
-    if (appState.userData && appState.userData.role === 'admin') {
-      appState.userData.rejectReservation(reservationId, 'No disponibilidad');
-    }
-    
-    setMessage('Reserva rechazada correctamente');
-    setTimeout(() => setMessage(''), 3000);
+  
+    fetch(`/api/reservations/updateStatus`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reservationId, status: 'rejected' })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Error al rechazar la reserva');
+        }
+        return res.json();
+      })
+      .then(data => {
+        appState.setState({ reservations: updatedReservations });
+        setMessage('Reserva rechazada correctamente');
+        setTimeout(() => setMessage(''), 3000);
+      })
+      .catch(err => {
+        console.error('Error al rechazar reserva:', err);
+        setMessage(`Error al rechazar la reserva: ${err.message}`);
+      });
   };
   
+
   return (
     <div className="admin-reservation-manager">
       <h2>Gestión de Reservas</h2>
       {message && <div className="message">{message}</div>}
-      
+
       {reservations.length === 0 ? (
         <p>No hay reservas pendientes</p>
       ) : (
