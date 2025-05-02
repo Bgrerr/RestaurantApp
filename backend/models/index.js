@@ -1,3 +1,4 @@
+// backend/models/index.js
 const { Sequelize } = require('sequelize');
 const path = require('path');
 
@@ -7,7 +8,7 @@ const sequelize = new Sequelize({
   logging: false
 });
 
-// Importar modelos pasándoles la instancia
+// Pasar sequelize a los modelos como parámetro
 const User = require('./User')(sequelize);
 const Reservation = require('./Reservation')(sequelize);
 
@@ -16,5 +17,3 @@ User.hasMany(Reservation, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Reservation.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = { sequelize, User, Reservation };
-
-
